@@ -1,8 +1,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Trash2, User, Menu, X } from "lucide-react";
+import { Trash2, User, Menu, X, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,6 +34,40 @@ const Navbar = () => {
           </Link>
           <Link to="/request" className="text-gray-700 hover:text-waste-green-500 transition-colors">
             Request Pickup
+          </Link>
+          
+          {/* Services Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-1 text-gray-700 hover:text-waste-green-500 transition-colors">
+              Services <ChevronDown size={16} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-white">
+              <DropdownMenuItem asChild>
+                <Link to="/services" className="w-full">All Services</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/residential" className="w-full">Residential</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/commercial" className="w-full">Commercial</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/recycling" className="w-full">Recycling</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/bulk-waste" className="w-full">Bulk Waste</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <Link to="/about" className="text-gray-700 hover:text-waste-green-500 transition-colors">
+            About Us
+          </Link>
+          <Link to="/contact" className="text-gray-700 hover:text-waste-green-500 transition-colors">
+            Contact
+          </Link>
+          <Link to="/collector-registration" className="text-gray-700 hover:text-waste-green-500 transition-colors">
+            Become a Collector
           </Link>
           <Link to="/profile" className="text-gray-700 hover:text-waste-green-500 transition-colors">
             Profile
@@ -70,6 +110,70 @@ const Navbar = () => {
               onClick={toggleMenu}
             >
               Request Pickup
+            </Link>
+            
+            {/* Services Links */}
+            <div className="py-2 border-t border-gray-100">
+              <p className="text-sm font-medium text-gray-500 mb-2">Services</p>
+              <div className="pl-2 flex flex-col gap-2">
+                <Link 
+                  to="/services" 
+                  className="text-gray-700 hover:text-waste-green-500 py-1 transition-colors"
+                  onClick={toggleMenu}
+                >
+                  All Services
+                </Link>
+                <Link 
+                  to="/residential" 
+                  className="text-gray-700 hover:text-waste-green-500 py-1 transition-colors"
+                  onClick={toggleMenu}
+                >
+                  Residential
+                </Link>
+                <Link 
+                  to="/commercial" 
+                  className="text-gray-700 hover:text-waste-green-500 py-1 transition-colors"
+                  onClick={toggleMenu}
+                >
+                  Commercial
+                </Link>
+                <Link 
+                  to="/recycling" 
+                  className="text-gray-700 hover:text-waste-green-500 py-1 transition-colors"
+                  onClick={toggleMenu}
+                >
+                  Recycling
+                </Link>
+                <Link 
+                  to="/bulk-waste" 
+                  className="text-gray-700 hover:text-waste-green-500 py-1 transition-colors"
+                  onClick={toggleMenu}
+                >
+                  Bulk Waste
+                </Link>
+              </div>
+            </div>
+            
+            <Link 
+              to="/about" 
+              className="text-gray-700 hover:text-waste-green-500 py-2 transition-colors"
+              onClick={toggleMenu}
+            >
+              About Us
+            </Link>
+            <Link 
+              to="/contact" 
+              className="text-gray-700 hover:text-waste-green-500 py-2 transition-colors"
+              onClick={toggleMenu}
+            >
+              Contact
+            </Link>
+            <Link 
+              to="/collector-registration" 
+              className="text-gray-700 hover:text-waste-green-500 py-2 transition-colors"
+              onClick={toggleMenu}
+            >
+              Become a Collector
             </Link>
             <Link 
               to="/profile" 

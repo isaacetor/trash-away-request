@@ -11,6 +11,16 @@ import Dashboard from "./pages/Dashboard";
 import RequestPickup from "./pages/RequestPickup";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import RequestDetails from "./pages/RequestDetails";
+import EditRequest from "./pages/EditRequest";
+import AboutUs from "./pages/AboutUs";
+import Contact from "./pages/Contact";
+import Services from "./pages/Services";
+import Residential from "./pages/Residential";
+import Commercial from "./pages/Commercial";
+import Recycling from "./pages/Recycling";
+import BulkWaste from "./pages/BulkWaste";
+import CollectorRegistration from "./pages/CollectorRegistration";
 
 const queryClient = new QueryClient();
 
@@ -26,7 +36,17 @@ const App = () => (
           <Route path="/signin" element={<SignIn />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/request" element={<RequestPickup />} />
+          <Route path="/request/:id/details" element={<RequestDetails />} />
+          <Route path="/request/:id/edit" element={<EditRequest />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/residential" element={<Residential />} />
+          <Route path="/commercial" element={<Commercial />} />
+          <Route path="/recycling" element={<Recycling />} />
+          <Route path="/bulk-waste" element={<BulkWaste />} />
+          <Route path="/collector-registration" element={<CollectorRegistration />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
