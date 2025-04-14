@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,34 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Waste management theme colors
+				"waste-green": {
+					50: "#f0f9f0",
+					100: "#dcf1dc",
+					200: "#bde4be",
+					300: "#92d193",
+					400: "#65b766",
+					500: "#4CAF50", // Primary green
+					600: "#3d8c40",
+					700: "#336d35",
+					800: "#2c572e",
+					900: "#254a27",
+					950: "#0e2a10",
+				},
+				"waste-blue": {
+					50: "#eefaff",
+					100: "#dcf4ff",
+					200: "#b3e9ff",
+					300: "#77d9ff",
+					400: "#38c6ff",
+					500: "#03A9F4", // Primary blue
+					600: "#0087cd",
+					700: "#006ba5",
+					800: "#005a87",
+					900: "#064b71",
+					950: "#042e47",
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
