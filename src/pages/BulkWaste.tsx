@@ -3,7 +3,7 @@ import PageLayout from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { Truck, Sofa, Package, Archive, CheckCircle, ArrowRight, Trash2, HelpCircle, FileText } from "lucide-react";
+import { Truck, Sofa, Package, Archive, CheckCircle, ArrowRight, Trash2, HelpCircle, FileText, Calendar, MapPin, Info } from "lucide-react";
 
 const BulkWaste = () => {
   return (
