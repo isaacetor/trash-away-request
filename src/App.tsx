@@ -22,6 +22,8 @@ import Recycling from "./pages/Recycling";
 import BulkWaste from "./pages/BulkWaste";
 import CollectorRegistration from "./pages/CollectorRegistration";
 import CollectorDashboard from "./pages/CollectorDashboard";
+import CollectorProfile from "./pages/CollectorProfile";
+import EditCollectorProfile from "./pages/EditCollectorProfile";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +51,8 @@ const App = () => (
           <Route path="/bulk-waste" element={<BulkWaste />} />
           <Route path="/collector-registration" element={<CollectorRegistration />} />
           <Route path="/collector-dashboard" element={<CollectorDashboard />} />
+          <Route path="/collector-profile" element={<CollectorProfile />} />
+          <Route path="/collector-profile/edit" element={<EditCollectorProfile />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
