@@ -12,39 +12,62 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
-import { Truck, Calendar, Clock, CheckCircle, ArrowRight, Users, DollarSign, Shield } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Clock, Truck, Users, DollarSign, Shield } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const formSchema = z.object({
+  // Personal information
   firstName: z.string().min(2, "First name is required"),
   lastName: z.string().min(2, "Last name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Phone number is required"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string(),
+  
+  // Address information
   address: z.string().min(5, "Address is required"),
   city: z.string().min(2, "City is required"),
   state: z.string().min(2, "State is required"),
   zip: z.string().min(5, "ZIP code is required"),
-  experienceLevel: z.string().min(1, "Please select your experience level"),
+  
+  // Experience & Vehicle
   vehicleType: z.string().min(1, "Please select your vehicle type"),
   availability: z.array(z.string()).min(1, "Please select at least one availability option"),
   serviceAreas: z.string().min(5, "Please enter your service areas"),
+  
+  // Background information
   previousExperience: z.string().optional(),
   whyJoin: z.string().min(10, "Please tell us why you want to join"),
+  
+  // Agreements
   backgroundCheck: z.boolean().refine(val => val === true, {
     message: "You must agree to a background check",
   }),
   termsAgreed: z.boolean().refine(val => val === true, {
     message: "You must agree to the terms and conditions",
   }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 const CollectorRegistration = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  
+  const formSteps = [
+    { id: "personal", title: "Personal Information" },
+    { id: "address", title: "Address Information" },
+    { id: "experience", title: "Experience & Availability" },
+    { id: "background", title: "Additional Information" },
+    { id: "agreements", title: "Review & Submit" }
+  ];
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -53,11 +76,12 @@ const CollectorRegistration = () => {
       lastName: "",
       email: "",
       phone: "",
+      password: "",
+      confirmPassword: "",
       address: "",
       city: "",
       state: "",
       zip: "",
-      experienceLevel: "",
       vehicleType: "",
       availability: [],
       serviceAreas: "",
@@ -66,7 +90,29 @@ const CollectorRegistration = () => {
       backgroundCheck: false,
       termsAgreed: false,
     },
+    mode: "onChange"
   });
+
+  const nextStep = async () => {
+    const fieldsToValidate = {
+      0: ["firstName", "lastName", "email", "phone", "password", "confirmPassword"],
+      1: ["address", "city", "state", "zip"],
+      2: ["vehicleType", "availability", "serviceAreas"],
+      3: ["whyJoin"],
+    }[currentStep];
+
+    const isValid = await form.trigger(fieldsToValidate as any);
+    
+    if (isValid) {
+      setCurrentStep(prev => Math.min(prev + 1, formSteps.length - 1));
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 0));
+    window.scrollTo(0, 0);
+  };
 
   const onSubmit = (values: FormValues) => {
     setIsSubmitting(true);
@@ -82,6 +128,398 @@ const CollectorRegistration = () => {
         description: "Thank you for your interest! We'll review your application and contact you soon.",
       });
     }, 1500);
+  };
+
+  const renderFormStep = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-semibold">{formSteps[currentStep].title}</h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your first name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your last name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="your.email@example.com" type="email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="(555) 123-4567" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Create a password" type="password" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Must be at least 8 characters
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Confirm your password" type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+        );
+      case 1:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-semibold">{formSteps[currentStep].title}</h3>
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Street Address</FormLabel>
+                  <FormControl>
+                    <Input placeholder="123 Main Street" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City</FormLabel>
+                    <FormControl>
+                      <Input placeholder="City" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="state"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>State</FormLabel>
+                    <FormControl>
+                      <Input placeholder="State" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="zip"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ZIP Code</FormLabel>
+                    <FormControl>
+                      <Input placeholder="ZIP Code" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+        );
+      case 2:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-semibold">{formSteps[currentStep].title}</h3>
+            <FormField
+              control={form.control}
+              name="vehicleType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Vehicle Type</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your vehicle type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="pickup">Pickup Truck</SelectItem>
+                      <SelectItem value="van">Cargo Van</SelectItem>
+                      <SelectItem value="box-truck">Box Truck</SelectItem>
+                      <SelectItem value="dump-truck">Dump Truck</SelectItem>
+                      <SelectItem value="other">Other (Specify in Experience)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="availability"
+              render={() => (
+                <FormItem>
+                  <div className="mb-4">
+                    <FormLabel>Availability</FormLabel>
+                    <FormDescription>
+                      Select all time slots when you're generally available
+                    </FormDescription>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {[
+                      "Weekday Mornings", "Weekday Afternoons", "Weekday Evenings",
+                      "Weekend Mornings", "Weekend Afternoons", "Weekend Evenings"
+                    ].map((item) => (
+                      <FormField
+                        key={item}
+                        control={form.control}
+                        name="availability"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={item}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(item)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...field.value, item])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) => value !== item
+                                          )
+                                        )
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal cursor-pointer">
+                                {item}
+                              </FormLabel>
+                            </FormItem>
+                          )
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="serviceAreas"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Service Areas</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Enter cities, neighborhoods, or zip codes you're willing to service" 
+                      className="min-h-[80px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    List the areas where you're able to provide pickup services
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+      case 3:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-semibold">{formSteps[currentStep].title}</h3>
+            <FormField
+              control={form.control}
+              name="previousExperience"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Previous Experience</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Describe any relevant experience in waste management, logistics, delivery, etc." 
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Optional, but helps us understand your background
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="whyJoin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Why Do You Want to Join?</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Tell us why you're interested in becoming a waste collector partner" 
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+      case 4:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-semibold">Agreement & Review</h3>
+            
+            <div className="bg-gray-50 p-6 rounded-lg border mb-6">
+              <h4 className="text-lg font-semibold mb-4">Application Summary</h4>
+              <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Name</dt>
+                  <dd>{form.watch('firstName')} {form.watch('lastName')}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Email</dt>
+                  <dd>{form.watch('email')}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Phone</dt>
+                  <dd>{form.watch('phone')}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Location</dt>
+                  <dd>{form.watch('city')}, {form.watch('state')}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Vehicle Type</dt>
+                  <dd className="capitalize">{form.watch('vehicleType') || 'Not specified'}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Availability</dt>
+                  <dd>{form.watch('availability')?.join(', ') || 'Not specified'}</dd>
+                </div>
+              </dl>
+            </div>
+            
+            <FormField
+              control={form.control}
+              name="backgroundCheck"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel className="font-normal">
+                      I agree to undergo a background check as part of the application process
+                    </FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="termsAgreed"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel className="font-normal">
+                      I agree to the <a href="/terms" className="text-waste-blue-500 hover:underline">Terms and Conditions</a> and <a href="/privacy" className="text-waste-blue-500 hover:underline">Privacy Policy</a>
+                    </FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const goToSignIn = () => {
+    navigate("/signin");
   };
 
   return (
@@ -110,6 +548,48 @@ const CollectorRegistration = () => {
                 </p>
               </div>
               
+              {/* Progress Steps */}
+              <div className="mb-8 overflow-x-auto">
+                <div className="flex items-center min-w-max">
+                  {formSteps.map((step, index) => (
+                    <div 
+                      key={step.id}
+                      className="flex items-center"
+                    >
+                      <div 
+                        className={`flex flex-col items-center ${index <= currentStep ? 'text-waste-green-500' : 'text-gray-400'}`}
+                      >
+                        <div 
+                          className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${
+                            index < currentStep 
+                              ? 'bg-waste-green-500 text-white' 
+                              : index === currentStep 
+                                ? 'border-2 border-waste-green-500 text-waste-green-500'
+                                : 'border-2 border-gray-300'
+                          }`}
+                        >
+                          {index < currentStep ? (
+                            <CheckCircle className="h-5 w-5" />
+                          ) : (
+                            <span>{index + 1}</span>
+                          )}
+                        </div>
+                        <span className="text-xs md:text-sm text-center w-20 md:w-24">
+                          {step.title}
+                        </span>
+                      </div>
+                      {index < formSteps.length - 1 && (
+                        <div 
+                          className={`w-10 md:w-16 h-0.5 ${
+                            index < currentStep ? 'bg-waste-green-500' : 'bg-gray-300'
+                          }`} 
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
               {isSubmitted ? (
                 <Card className="border-waste-green-500">
                   <CardContent className="pt-6 flex flex-col items-center text-center">
@@ -124,15 +604,18 @@ const CollectorRegistration = () => {
                     <p className="text-gray-600 mb-8">
                       Application Reference: <span className="font-semibold">{Math.random().toString(36).substring(2, 10).toUpperCase()}</span>
                     </p>
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-4">
+                      <Button 
+                        onClick={goToSignIn}
+                        className="bg-waste-green-500 hover:bg-waste-green-600"
+                      >
+                        Sign In to Dashboard
+                      </Button>
                       <Button 
                         onClick={() => setIsSubmitted(false)}
                         variant="outline"
                       >
                         Submit Another Application
-                      </Button>
-                      <Button className="bg-waste-green-500 hover:bg-waste-green-600">
-                        <a href="mailto:collectors@trashaway.com">Contact Support</a>
                       </Button>
                     </div>
                   </CardContent>
@@ -140,366 +623,49 @@ const CollectorRegistration = () => {
               ) : (
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                    {/* Personal Information */}
-                    <div className="space-y-6">
-                      <h3 className="text-xl font-semibold">Personal Information</h3>
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <FormField
-                          control={form.control}
-                          name="firstName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>First Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter your first name" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="lastName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Last Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter your last name" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                    <Card className="p-6">
+                      {renderFormStep()}
+                      
+                      <div className="flex flex-wrap justify-between mt-8 pt-4 border-t">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={prevStep}
+                          disabled={currentStep === 0}
+                          className={currentStep === 0 ? "opacity-0" : ""}
+                        >
+                          <ArrowLeft className="h-4 w-4 mr-2" />
+                          Back
+                        </Button>
+                        
+                        {currentStep < formSteps.length - 1 ? (
+                          <Button 
+                            type="button" 
+                            onClick={nextStep}
+                            className="bg-waste-green-500 hover:bg-waste-green-600 ml-auto"
+                          >
+                            Next
+                            <ArrowRight className="h-4 w-4 ml-2" />
+                          </Button>
+                        ) : (
+                          <Button 
+                            type="submit" 
+                            className="bg-waste-green-500 hover:bg-waste-green-600 ml-auto"
+                            disabled={isSubmitting || !form.formState.isValid}
+                          >
+                            {isSubmitting ? (
+                              <span className="flex items-center">
+                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Submitting...
+                              </span>
+                            ) : "Submit Application"}
+                          </Button>
+                        )}
                       </div>
-                      
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <FormField
-                          control={form.control}
-                          name="email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Email Address</FormLabel>
-                              <FormControl>
-                                <Input placeholder="your.email@example.com" type="email" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="phone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Phone Number</FormLabel>
-                              <FormControl>
-                                <Input placeholder="(555) 123-4567" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    {/* Address Information */}
-                    <div className="space-y-6">
-                      <h3 className="text-xl font-semibold">Address</h3>
-                      <FormField
-                        control={form.control}
-                        name="address"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Street Address</FormLabel>
-                            <FormControl>
-                              <Input placeholder="123 Main Street" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <div className="grid md:grid-cols-3 gap-6">
-                        <FormField
-                          control={form.control}
-                          name="city"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>City</FormLabel>
-                              <FormControl>
-                                <Input placeholder="City" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="state"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>State</FormLabel>
-                              <FormControl>
-                                <Input placeholder="State" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="zip"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>ZIP Code</FormLabel>
-                              <FormControl>
-                                <Input placeholder="ZIP Code" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    {/* Experience and Availability */}
-                    <div className="space-y-6">
-                      <h3 className="text-xl font-semibold">Experience & Availability</h3>
-                      <FormField
-                        control={form.control}
-                        name="experienceLevel"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Experience Level</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select your experience level" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="beginner">Beginner (0-1 years)</SelectItem>
-                                <SelectItem value="intermediate">Intermediate (1-3 years)</SelectItem>
-                                <SelectItem value="experienced">Experienced (3+ years)</SelectItem>
-                                <SelectItem value="professional">Professional (5+ years)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="vehicleType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Vehicle Type</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select your vehicle type" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="pickup">Pickup Truck</SelectItem>
-                                <SelectItem value="van">Cargo Van</SelectItem>
-                                <SelectItem value="box-truck">Box Truck</SelectItem>
-                                <SelectItem value="dump-truck">Dump Truck</SelectItem>
-                                <SelectItem value="other">Other (Specify in Experience)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="availability"
-                        render={() => (
-                          <FormItem>
-                            <div className="mb-4">
-                              <FormLabel>Availability</FormLabel>
-                              <FormDescription>
-                                Select all time slots when you're generally available
-                              </FormDescription>
-                            </div>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                              {[
-                                "Weekday Mornings", "Weekday Afternoons", "Weekday Evenings",
-                                "Weekend Mornings", "Weekend Afternoons", "Weekend Evenings"
-                              ].map((item) => (
-                                <FormField
-                                  key={item}
-                                  control={form.control}
-                                  name="availability"
-                                  render={({ field }) => {
-                                    return (
-                                      <FormItem
-                                        key={item}
-                                        className="flex flex-row items-start space-x-3 space-y-0"
-                                      >
-                                        <FormControl>
-                                          <Checkbox
-                                            checked={field.value?.includes(item)}
-                                            onCheckedChange={(checked) => {
-                                              return checked
-                                                ? field.onChange([...field.value, item])
-                                                : field.onChange(
-                                                    field.value?.filter(
-                                                      (value) => value !== item
-                                                    )
-                                                  )
-                                            }}
-                                          />
-                                        </FormControl>
-                                        <FormLabel className="font-normal cursor-pointer">
-                                          {item}
-                                        </FormLabel>
-                                      </FormItem>
-                                    )
-                                  }}
-                                />
-                              ))}
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="serviceAreas"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Service Areas</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="Enter cities, neighborhoods, or zip codes you're willing to service" 
-                                className="min-h-[80px]"
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              List the areas where you're able to provide pickup services
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <Separator />
-                    
-                    {/* Experience and Motivation */}
-                    <div className="space-y-6">
-                      <h3 className="text-xl font-semibold">Tell Us More</h3>
-                      <FormField
-                        control={form.control}
-                        name="previousExperience"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Previous Experience</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="Describe any relevant experience in waste management, logistics, delivery, etc." 
-                                className="min-h-[100px]"
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              Optional, but helps us understand your background
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="whyJoin"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Why Do You Want to Join?</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="Tell us why you're interested in becoming a waste collector partner" 
-                                className="min-h-[100px]"
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <Separator />
-                    
-                    {/* Agreements */}
-                    <div className="space-y-6">
-                      <h3 className="text-xl font-semibold">Agreements</h3>
-                      <FormField
-                        control={form.control}
-                        name="backgroundCheck"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel className="font-normal">
-                                I agree to undergo a background check as part of the application process
-                              </FormLabel>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="termsAgreed"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel className="font-normal">
-                                I agree to the <a href="/terms" className="text-waste-blue-500 hover:underline">Terms and Conditions</a> and <a href="/privacy" className="text-waste-blue-500 hover:underline">Privacy Policy</a>
-                              </FormLabel>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full md:w-auto bg-waste-green-500 hover:bg-waste-green-600"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <span className="flex items-center">
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Submitting...
-                        </span>
-                      ) : "Submit Application"}
-                    </Button>
+                    </Card>
                   </form>
                 </Form>
               )}
@@ -561,84 +727,50 @@ const CollectorRegistration = () => {
                   </CardContent>
                 </Card>
                 
-                <Card>
-                  <CardContent className="pt-6">
-                    <h3 className="text-xl font-semibold mb-4">Requirements</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-waste-green-500 flex-shrink-0" />
-                        <span>21+ years of age</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-waste-green-500 flex-shrink-0" />
-                        <span>Valid driver's license</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-waste-green-500 flex-shrink-0" />
-                        <span>Clean driving record</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-waste-green-500 flex-shrink-0" />
-                        <span>Suitable vehicle (pickup truck, van, etc.)</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-waste-green-500 flex-shrink-0" />
-                        <span>Ability to lift at least 50 pounds</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-waste-green-500 flex-shrink-0" />
-                        <span>Smartphone with reliable data service</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-waste-green-500 flex-shrink-0" />
-                        <span>Pass background check</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="pt-6">
-                    <h3 className="text-xl font-semibold mb-4">Application Process</h3>
-                    <ol className="space-y-4 relative border-l border-gray-200 pl-6 ml-2">
-                      <li className="mb-6">
-                        <div className="absolute w-6 h-6 rounded-full bg-waste-green-500 -left-3 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">1</span>
-                        </div>
-                        <p className="font-medium">Submit Application</p>
-                        <p className="text-sm text-gray-600">Complete the form with your details</p>
-                      </li>
-                      <li className="mb-6">
-                        <div className="absolute w-6 h-6 rounded-full bg-waste-green-500 -left-3 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">2</span>
-                        </div>
-                        <p className="font-medium">Initial Review</p>
-                        <p className="text-sm text-gray-600">Our team reviews your application (1-3 days)</p>
-                      </li>
-                      <li className="mb-6">
-                        <div className="absolute w-6 h-6 rounded-full bg-waste-green-500 -left-3 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">3</span>
-                        </div>
-                        <p className="font-medium">Background Check</p>
-                        <p className="text-sm text-gray-600">Verify your information and history</p>
-                      </li>
-                      <li className="mb-6">
-                        <div className="absolute w-6 h-6 rounded-full bg-waste-green-500 -left-3 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">4</span>
-                        </div>
-                        <p className="font-medium">Virtual Orientation</p>
-                        <p className="text-sm text-gray-600">Learn about our platform and procedures</p>
-                      </li>
-                      <li>
-                        <div className="absolute w-6 h-6 rounded-full bg-waste-green-500 -left-3 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">5</span>
-                        </div>
-                        <p className="font-medium">Start Collecting!</p>
-                        <p className="text-sm text-gray-600">Begin accepting pickup requests</p>
-                      </li>
-                    </ol>
-                  </CardContent>
-                </Card>
+                {currentStep === 4 && (
+                  <Card>
+                    <CardContent className="pt-6">
+                      <h3 className="text-xl font-semibold mb-4">Application Process</h3>
+                      <ol className="space-y-4 relative border-l border-gray-200 pl-6 ml-2">
+                        <li className="mb-6">
+                          <div className="absolute w-6 h-6 rounded-full bg-waste-green-500 -left-3 flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">1</span>
+                          </div>
+                          <p className="font-medium">Submit Application</p>
+                          <p className="text-sm text-gray-600">Complete the form with your details</p>
+                        </li>
+                        <li className="mb-6">
+                          <div className="absolute w-6 h-6 rounded-full bg-waste-green-500 -left-3 flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">2</span>
+                          </div>
+                          <p className="font-medium">Initial Review</p>
+                          <p className="text-sm text-gray-600">Our team reviews your application (1-3 days)</p>
+                        </li>
+                        <li className="mb-6">
+                          <div className="absolute w-6 h-6 rounded-full bg-waste-green-500 -left-3 flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">3</span>
+                          </div>
+                          <p className="font-medium">Background Check</p>
+                          <p className="text-sm text-gray-600">Verify your information and history</p>
+                        </li>
+                        <li className="mb-6">
+                          <div className="absolute w-6 h-6 rounded-full bg-waste-green-500 -left-3 flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">4</span>
+                          </div>
+                          <p className="font-medium">Virtual Orientation</p>
+                          <p className="text-sm text-gray-600">Learn about our platform and procedures</p>
+                        </li>
+                        <li>
+                          <div className="absolute w-6 h-6 rounded-full bg-waste-green-500 -left-3 flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">5</span>
+                          </div>
+                          <p className="font-medium">Start Collecting!</p>
+                          <p className="text-sm text-gray-600">Begin accepting pickup requests</p>
+                        </li>
+                      </ol>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           </div>
