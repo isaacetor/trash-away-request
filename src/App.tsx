@@ -49,7 +49,6 @@ const App = () => (
           <Route path="/bulk-waste" element={<BulkWaste />} />
           <Route path="/collector-registration" element={<CollectorRegistration />} />
           <Route path="/collector-dashboard" element={<CollectorDashboard />} />
-          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

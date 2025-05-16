@@ -6,9 +6,15 @@ interface PageLayoutProps {
   children: React.ReactNode;
   className?: string;
   containerClassName?: string;
+  footer?: React.ReactNode;
 }
 
-const PageLayout = ({ children, className = "", containerClassName = "container mx-auto p-4" }: PageLayoutProps) => {
+const PageLayout = ({ 
+  children, 
+  className = "", 
+  containerClassName = "container mx-auto p-4",
+  footer
+}: PageLayoutProps) => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -17,6 +23,11 @@ const PageLayout = ({ children, className = "", containerClassName = "container 
           {children}
         </div>
       </div>
+      {footer && (
+        <div className="mt-auto">
+          {footer}
+        </div>
+      )}
     </div>
   );
 };
