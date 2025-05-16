@@ -21,6 +21,7 @@ import Commercial from "./pages/Commercial";
 import Recycling from "./pages/Recycling";
 import BulkWaste from "./pages/BulkWaste";
 import CollectorRegistration from "./pages/CollectorRegistration";
+import CollectorDashboard from "./pages/CollectorDashboard";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
           <Route path="/recycling" element={<Recycling />} />
           <Route path="/bulk-waste" element={<BulkWaste />} />
           <Route path="/collector-registration" element={<CollectorRegistration />} />
+          <Route path="/collector-dashboard" element={<CollectorDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
